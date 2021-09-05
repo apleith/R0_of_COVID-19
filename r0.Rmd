@@ -1,0 +1,321 @@
+---
+title: "R0"
+output: html_notebook
+---
+
+
+Animate R0 
+
+
+
+# Install and load packages
+
+```{r}
+#install.packages("data.table")
+#install.packages("ggplot2")
+#install.packages("ggthemes")
+#install.packages("gganimate")
+#install.packages("gifski")
+#install.packages("tidyverse")
+#install.packages("ggrepel")
+#install.packages("wesanderson")
+#install.packages("scales")
+#install.packages("png")
+
+library("data.table")
+library("ggplot2")
+library("ggthemes")
+library("gganimate")
+library("gifski")
+library("tidyverse")
+library("ggrepel")
+library("wesanderson")
+library("scales")
+library("ggpubr")
+library("png")
+```
+
+
+
+# Load data
+
+```{r}
+r0 <- fread("r0.csv")
+
+```
+
+
+
+# Define order
+```{r}
+r0$Disease <- factor(r0$Disease, order = TRUE,
+             levels = c("Seasonal Flu", "H1N1", "Ebola", "COVID-19 (Original)", "SARS", "COVID-19 (Delta)", "Chickenpox", "Mumps", "Measles"))
+```
+
+
+
+# Visualize static chart for cd_co_sf
+
+```{r}
+co_sf <- 
+  ggplot(
+  r0 %>%
+    filter(
+      Disease == 'Seasonal Flu' | Disease == 'COVID-19 (Original)'
+      ),
+  aes(
+    Round, 
+    New, 
+    group = Disease, 
+    color = factor(Disease)
+    )
+  ) +
+  geom_line(
+    size = 2
+    ) +
+  scale_color_manual(
+    values=wes_palette(
+      n=3, 
+      name="FantasticFox1"
+      )
+    ) +
+  labs(
+    x = "Rounds Since Patient 0", 
+    y = "New Cases", 
+    title = "Comparing R0 of the Seasonal Flu & COVID-19",
+    subtitle = "@apleith [twitter & github] 
+    @apleithtv [instagram & twitch]",
+    color = "Diseases", 
+    size = 0) +
+  geom_text_repel(
+    aes(
+      label = paste(as.factor(New), "newly infected"),
+      ),
+    size = 8,
+    hjust = -2,
+    ) +
+  scale_y_continuous(
+    breaks = pretty_breaks()
+    ) +
+  scale_x_continuous(
+    breaks = pretty_breaks(n = 11)
+    ) +
+  theme_economist() +
+  theme(
+    legend.position = "right", 
+    plot.background = element_rect(
+      fill = "grey15"
+      ), 
+    legend.background = element_rect(
+      fill = "grey15"
+      ), 
+    axis.text = element_text(
+      size = 12, 
+      color = "white"
+      ),
+    axis.title.x = element_text(
+      size = 18, 
+      color = "white", 
+      margin = margin(t = 20)
+      ),
+    axis.title.y = element_text(
+      size = 18, 
+      color = "white", 
+      margin = margin(r = 20)
+      ),
+    plot.title = element_text(
+      size = 30, 
+      color = "white",
+      margin = margin(r = 5),
+      hjust = 0.5
+      ),
+    plot.subtitle = element_text(
+      size = 14, 
+      color = "white",
+      margin = margin(b = 20),
+      hjust = 0.5
+      ),
+    legend.title = element_text(
+      size = 18, 
+      color = "white"
+      ),
+    legend.text = element_text(
+      size = 16, 
+      color = "white"
+      ),
+    axis.ticks = element_line(
+      color = "white"
+      ),
+    axis.line = element_line(
+      color = "white"
+      ), 
+    )
+
+co_sf
+```
+
+
+# Create co_sf animation 
+```{r}
+co_sf_animate <- co_sf +
+  geom_point() +
+  transition_reveal(Round) +
+#  geom_text(
+#    aes(
+#      x = min(Round), 
+#      y = min(New), 
+#      label = as.factor(Round)
+#      ),
+#    hjust=0, 
+#    vjust = 0, 
+#    alpha = 0.5,  
+#    col = "gray", 
+#    size = 20
+#    ) +
+  view_follow(fixed_x = TRUE)
+
+#co_sf_animate
+```
+
+# Visulalize co_sf animation and save
+```{r}
+animate(co_sf_animate, height = 800, width = 800)
+anim_save("co_sf_animate.gif")
+```
+
+
+
+
+# Visualize static chart for cd_co_sf
+
+```{r}
+cd_co_sf <- 
+  ggplot(
+  r0 %>%
+    filter(
+      Disease == 'Seasonal Flu' | Disease == 'COVID-19 (Original)' | Disease == 'COVID-19 (Delta)'
+      ),
+  aes(
+    Round, 
+    New, 
+    group = Disease, 
+    color = factor(Disease)
+    )
+  ) +
+  geom_line(
+    size = 2
+    ) +
+  scale_color_manual(
+    values=wes_palette(
+      n=3, 
+      name="FantasticFox1"
+      )
+    ) +
+  labs(
+    x = "Rounds Since Patient 0", 
+    y = "New Cases", 
+    title = "Comparing R0 of the Seasonal Flu, COVID-19, 
+    & COVID-19 (Delta)",
+    subtitle = "@apleith [twitter & github] 
+    @apleithtv [instagram & twitch]",
+    color = "Diseases", 
+    size = 0) +
+  geom_text_repel(
+    aes(
+      label = paste(as.factor(New), "newly infected"),
+      ),
+    size = 8,
+    hjust = -2
+    ) +
+  scale_y_continuous(
+    breaks = pretty_breaks()
+    ) +
+  scale_x_continuous(
+    breaks = pretty_breaks(n = 11)
+    ) +
+  theme_economist() +
+  theme(
+    legend.position = "right", 
+    plot.background = element_rect(
+      fill = "grey15"
+      ), 
+    legend.background = element_rect(
+      fill = "grey15"
+      ), 
+    axis.text = element_text(
+      size = 12, 
+      color = "white"
+      ),
+    axis.title.x = element_text(
+      size = 18, 
+      color = "white", 
+      margin = margin(t = 20)
+      ),
+    axis.title.y = element_text(
+      size = 18, 
+      color = "white", 
+      margin = margin(r = 20)
+      ),
+    plot.title = element_text(
+      size = 30, 
+      color = "white",
+      margin = margin(r = 5),
+      hjust = 0.5
+      ),
+    plot.subtitle = element_text(
+      size = 14, 
+      color = "white",
+      margin = margin(b = 20),
+      hjust = 0.5
+      ),
+    legend.title = element_text(
+      size = 18, 
+      color = "white"
+      ),
+    legend.text = element_text(
+      size = 16, 
+      color = "white"
+      ),
+    axis.ticks = element_line(
+      color = "white"
+      ),
+    axis.line = element_line(
+      color = "white"
+      ), 
+    )
+
+cd_co_sf
+```
+
+
+# Create cd_co_sf animation 
+```{r}
+cd_co_sf_animate <- cd_co_sf +
+  geom_point() +
+  transition_reveal(Round) +
+#  geom_text(
+#    aes(
+#      x = min(Round), 
+#      y = min(New), 
+#      label = as.factor(Round)
+#      ),
+#    hjust=0, 
+#    vjust = 0, 
+#    alpha = 0.5,  
+#    col = "gray", 
+#    size = 20
+#    ) +
+  view_follow(fixed_x = TRUE)
+
+#cd_co_sf_animate
+```
+
+# Visulalize cd_co_sf animation and save
+```{r}
+animate(cd_co_sf_animate, height = 800, width = 800)
+anim_save("cd_co_sf_animate.gif")
+```
+
+
+
+
